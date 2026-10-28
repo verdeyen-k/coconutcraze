@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coconut Craze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #1b1640; --bg2: #3a2a6b;
+    --ink: #fff7ec; --muted: #b9b0d8;
+    --card: rgba(255,255,255,0.08); --line: rgba(255,255,255,0.14);
+    --accent: #ffb84d;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg1); }
+  body { margin: 0; color: var(--ink); font-family: 'Fredoka', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+    background: radial-gradient(120% 60% at 50% 0%, var(--bg2), var(--bg1)) no-repeat, var(--bg1); min-height: 100vh; }
+  button, input { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .screen { max-width: 520px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; gap: 14px; justify-content: center;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+  h1 { margin: 0; font-size: clamp(46px, 14vw, 68px); line-height: .92; text-align: center; letter-spacing: 1px; }
+  h1 small { display: block; font-size: .3em; color: var(--muted); letter-spacing: 3px; margin-top: 8px; font-weight: 500; }
+  h2 { margin: 0; font-size: 22px; }
+  p { margin: 0; line-height: 1.4; }
+  .muted { color: var(--muted); }
+  .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { border-radius: 16px; padding: 12px 18px; font-size: 18px; font-weight: 600; cursor: pointer;
+    background: var(--card); border: 2px solid var(--line); transition: transform .08s; }
+  .btn:active:not(:disabled) { transform: scale(.96); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.primary { background: var(--accent); color: #2b1d00; border-color: transparent; box-shadow: 0 5px 0 #c17c18; }
+  .btn.primary:active:not(:disabled) { box-shadow: 0 2px 0 #c17c18; transform: translateY(3px); }
+  .btn.small { padding: 6px 12px; font-size: 15px; border-radius: 12px; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg button { min-width: 40px; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #2b1d00; border-color: transparent; }
+  .field { width: 100%; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); font-size: 18px; outline: none; }
+  .field:focus { border-color: var(--accent); }
+  .code-in { width: 7em; text-transform: uppercase; letter-spacing: 5px; text-align: center; font-weight: 700; }
+  .error { color: #ff8a8a; min-height: 1.4em; }
+  ul.plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  ul.plain li { display: flex; gap: 8px; align-items: center; }
+  ul.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; line-height: 1.35; }
+  .sw { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(0,0,0,.4); flex: none; }
+  .pname { font-weight: 600; }
+  .code { font-size: 42px; font-weight: 700; letter-spacing: 8px; text-align: center; }
+
+  /* The battle: exactly the visible screen (phones' 100vh includes the space behind the address bar). */
+  #game { position: fixed; inset: 0; height: 100%; height: 100dvh; min-height: 0; max-width: none; padding: 0 0 env(safe-area-inset-bottom, 0px); gap: 0;
+    justify-content: flex-start; overscroll-behavior: none; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .top { display: flex; align-items: center; gap: 10px; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 6px; width: 100%; max-width: 760px; margin: 0 auto; }
+  .top .spacer { flex: 1; }
+  #hud { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 460px) { .top .title { display: none; } }
+  /* The canvas is pinned inside its box so its size never depends on how many pixels it's drawn at. */
+  .beach-wrap { flex: 1; min-height: 0; position: relative; }
+  canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: block; border-radius: 12px; touch-action: none; }
+  .controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 18px 12px; width: 100%; max-width: 760px; margin: 0 auto; }
+  .stick { width: 132px; height: 132px; border-radius: 50%; background: var(--card); border: 3px solid var(--line); position: relative; touch-action: none; flex: none; }
+  .stick .knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+    background: rgba(255,255,255,.3); border: 2px solid rgba(255,255,255,.5); pointer-events: none; }
+  .two #stick0 { border-color: #ff6b6b; } .two #stick0 .knob { background: rgba(255,107,107,.6); }
+  .two #stick1 { border-color: #4dabf7; } .two #stick1 .knob { background: rgba(77,171,247,.6); }
+  /* A sideways phone: the beach gets the full height and the sticks sit in the empty space on either side. */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .controls { position: absolute; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); max-width: none; padding: 0 max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+    .stick { pointer-events: auto; width: 120px; height: 120px; }
+  }
+  .keys-hint { display: none; color: var(--muted); font-size: 15px; text-align: center; padding: 6px 12px 12px; }
+  /* Touch screens get sticks; keyboards get a hint instead. */
+  @media (hover: hover) and (pointer: fine) { body:not(.touch) .controls { display: none; } body:not(.touch) .keys-hint { display: block; } }
+  #score0 { color: #ff8a8a; } #score1 { color: #74c0fc; }
+  #timer { background: rgba(0,0,0,.3); padding: 2px 12px; border-radius: 12px; }
+  #count { position: fixed; left: 0; right: 0; top: 34%; text-align: center; font-size: clamp(70px, 22vw, 140px); font-weight: 700;
+    color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,.4); pointer-events: none; }
+  #over { position: fixed; inset: 0; background: rgba(10,6,30,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #over .card { background: var(--bg2); max-width: 420px; width: 100%; }
+  #winner { font-size: 26px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #winner .sw { width: 24px; height: 24px; }
+</style>
+</head>
+<body>
+
+<section class="screen" id="menu">
+  <h1>🥥 Coconut Craze<small>MOST POINTS WINS</small></h1>
+  <div class="card">
+    <p>Coconuts fall from three palm trees. Walk over one to pick it up, then carry it to your conveyor belt: red's belt is on the left, blue's is on the right.</p>
+    <ul class="rules">
+      <li>🥥 <b>Coconut</b>: 1 point for you.</li>
+      <li>🧊 <b>Ice coconut</b>: freezes the other player for 3 seconds.</li>
+      <li>➖ <b>Negative coconut</b>: takes 10 points from the other player (scores never go below 0).</li>
+      <li>🤚 <b>Snatch!</b> Walk into the other player with empty hands to steal what they're carrying.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Play here</h2>
+    <div class="row">
+      <button class="btn primary" id="practice" type="button">vs Computer</button>
+      <button class="btn primary" id="local" type="button">2 players, one device</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Play online</h2>
+    <input class="field" id="name" maxlength="14" placeholder="Your name" autocomplete="nickname">
+    <button class="btn primary" id="create" type="button">Create a room</button>
+    <div class="row"><input class="field code-in" id="join-code" maxlength="4" placeholder="CODE" autocomplete="off" aria-label="Room code"><button class="btn" id="join" type="button">Join</button></div>
+    <p class="error" id="menu-error"></p>
+  </div>
+</section>
+
+<section class="screen" id="lobby" hidden>
+  <h1>🥥 Coconut Craze</h1>
+  <div class="card">
+    <p class="muted" style="text-align:center">Room code: your friend types this on their own device to join.</p>
+    <div class="code" id="code"></div>
+  </div>
+  <div class="card">
+    <h2>Players</h2>
+    <ul class="plain" id="lobby-players"></ul>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="start" type="button">Start</button>
+    <span class="muted" id="lobby-wait">Waiting for the host to start…</span>
+    <button class="btn" id="lobby-leave" type="button">Leave</button>
+  </div>
+</section>
+
+<section class="screen" id="game" hidden>
+  <div class="top">
+    <b class="title">🥥 Coconut Craze</b>
+    <span class="spacer"></span>
+    <span id="hud"><span id="score0"></span><span id="timer"></span><span id="score1"></span></span>
+    <span class="spacer"></span>
+    <button class="btn small" id="mute" type="button" aria-label="Sound">🔊</button>
+    <button class="btn small" id="game-leave" type="button">Leave</button>
+  </div>
+  <div class="beach-wrap"><canvas id="canvas" aria-label="The beach"></canvas></div>
+  <div class="controls" id="controls">
+    <div class="stick" id="stick0" aria-label="Move"><div class="knob"></div></div>
+    <div class="stick" id="stick1" aria-label="Move blue"><div class="knob"></div></div>
+  </div>
+  <p class="keys-hint" id="keys-hint"></p>
+</section>
+
+<div id="count" hidden></div>
+<div id="over" hidden>
+  <div class="card">
+    <h2 id="winner"></h2>
+    <p class="muted" id="place"></p>
+    <div class="row">
+      <button class="btn primary" id="again" type="button">Play again</button>
+      <span class="muted" id="again-wait">Waiting for the host…</span>
+      <button class="btn" id="over-leave" type="button">Leave</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="coconuts.js?v=1"></script>
+</body>
+</html>
