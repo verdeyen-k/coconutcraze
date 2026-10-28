@@ -10,7 +10,7 @@ Most points after 90 seconds wins.
 |---|---|---|
 | 🥥 | Coconut | 1 point for you |
 | 🧊 | Ice coconut | Freezes the other player for 3 seconds |
-| ➖ | Negative coconut | Takes 10 points from the other player (scores never go below 0) |
+| ➖ | Negative coconut | Takes 2 points from the other player (scores never go below 0) |
 
 **Snatch!** Walk into the other player with empty hands to steal the coconut they're carrying.
 

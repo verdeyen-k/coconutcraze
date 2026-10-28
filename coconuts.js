@@ -10,7 +10,7 @@
   const MAX_NUTS = 8;
   const TREES = [{ x: 230, y: 95 }, { x: 400, y: 95 }, { x: 570, y: 95 }], TRUNK = 16;
   // n: plain coconut, i: ice, x: negative.
-  const POINTS = 1, MINUS = 10;
+  const POINTS = 1, MINUS = 2;
   const COLORS = ['#ff6b6b', '#4dabf7'], DARK = ['#c0392b', '#1c6fb5'], COLOR_NAMES = ['Red', 'Blue'];
   const START = [{ x: 150, y: 400 }, { x: 650, y: 400 }];
 
@@ -20,7 +20,7 @@
 
   // ── Online rooms ─────────────────────────────────────────────────────────
   // Bump with the ?v= on the script in index.html whenever what goes in the room changes.
-  const VERSION = 1;
+  const VERSION = 2;
   const OUTDATED = 'That room is using a different version of Coconut Craze. Everyone needs to refresh the page.';
   const ROOMS = 'coconutcraze/rooms';
 
