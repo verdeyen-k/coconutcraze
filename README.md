@@ -21,7 +21,7 @@ Most points after 90 seconds wins.
 
 ## Ways to play
 
-- **vs Computer**
+- **vs Computer**: pick how good it is: Very Easy, Easy, Medium, Hard or Insane.
 - **2 players, one device**
 - **Online:** one person creates a room and the other types the 4-letter code on their own device.
 

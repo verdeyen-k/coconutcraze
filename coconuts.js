@@ -202,12 +202,26 @@
     return d ? [x / d, y / d] : [0, 0];
   }
 
+  // How hard the computer plays, from Very Easy to Insane (Medium is how it always played). think: seconds between
+  // decisions; chase: how close you must be before it comes to snatch your coconut (0 = never); speed: how fast it
+  // walks (1 = as fast as you).
+  const LEVELS = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Insane'];
+  const BOT_LEVELS = [
+    { think: 0.7, chase: 0, speed: 0.55 },
+    { think: 0.4, chase: 120, speed: 0.68 },
+    { think: 0.15, chase: 230, speed: 0.82 },
+    { think: 0.1, chase: 320, speed: 0.92 },
+    { think: 0.04, chase: 9999, speed: 1 },
+  ];
+  const savedLevel = () => { const n = Number(store.get('coconutcraze-level') ?? 2); return LEVELS[n] ? n : 2; };
+  let botSkill = BOT_LEVELS[2];
+
   // The computer player: carry coconuts home, chase you if you're carrying one, and go for the special coconuts first.
   function botInput(p, dt) {
     const o = game.players[1 - p.slot];
     p.think -= dt;
     if (p.think <= 0) {
-      p.think = 0.15 + Math.random() * 0.15;
+      p.think = botSkill.think + Math.random() * 0.15;
       if (p.hold) p.goal = { x: beltX(p.slot) + (p.slot === 0 ? -10 : 10), y: clamp(p.y, 60, H - 40) };
       else {
         let best = null, score = 1e9;
@@ -216,7 +230,7 @@
           if (d < score) { score = d; best = n; }
         }
         const od = Math.hypot(o.x - p.x, o.y - p.y);
-        if (o.hold && now() > o.guard && od < 230 && (od < score || o.hold !== 'n')) p.goal = { x: o.x, y: o.y };
+        if (o.hold && now() > o.guard && od < botSkill.chase && (od < score || o.hold !== 'n')) p.goal = { x: o.x, y: o.y };
         else p.goal = best ? { x: best.x, y: best.y } : { x: W / 2 + 60, y: H / 2 + 40 };
       }
     }
@@ -230,7 +244,7 @@
       if (ahead > 0 && ahead < 60 && Math.abs(ax * dy - ay * dx) < TRUNK + R) { const s = ax * dy - ay * dx > 0 ? 1 : -1; dx += dy * s * 1.2; dy -= dx * s * 1.2; }
     }
     const l = Math.hypot(dx, dy) || 1;
-    return [dx / l * 0.82, dy / l * 0.82];
+    return [dx / l * botSkill.speed, dy / l * botSkill.speed];
   }
 
   function walk(p, v, dt) {
@@ -644,6 +658,11 @@
   if (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) document.body.classList.add('touch');
 
   $('practice').onclick = startPractice;
+  const levelSeg = $('level');
+  levelSeg.innerHTML = LEVELS.map((name, n) => `<button type="button" data-n="${n}">${name}</button>`).join('');
+  const drawLevel = () => { botSkill = BOT_LEVELS[savedLevel()]; for (const b of levelSeg.children) b.classList.toggle('on', Number(b.dataset.n) === savedLevel()); };
+  levelSeg.onclick = e => { const b = e.target.closest('button'); if (b) { store.set('coconutcraze-level', b.dataset.n); drawLevel(); } };
+  drawLevel();
   $('local').onclick = startLocal;
   $('name').value = store.get('coconutcraze-name') || '';
   $('create').onclick = () => { const n = myName(); if (n) createRoom(n); };
